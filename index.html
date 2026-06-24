@@ -699,32 +699,6 @@ input[type=range].ui-slider{width:100%;height:3px;accent-color:var(--gold);curso
 </div>
 
 <!-- Recording download dialog -->
-<div id="rec-download-overlay" style="
-  display:none;position:fixed;inset:0;z-index:9000;
-  background:rgba(0,0,0,.75);
-  align-items:center;justify-content:center;
-">
-  <div style="
-    background:#1c1c1f;border:1px solid #3a3a40;border-radius:12px;
-    padding:24px;max-width:320px;width:90%;text-align:center;
-    font-family:'Inter',sans-serif;
-  ">
-    <div style="color:#d4a84b;font-size:32px;margin-bottom:8px">●</div>
-    <div style="color:#e8e8ec;font-size:16px;font-weight:600;margin-bottom:6px">Recording Complete</div>
-    <div id="rec-file-size" style="color:#606068;font-size:12px;margin-bottom:20px"></div>
-    <a id="rec-download-link" style="
-      display:block;background:#d4a84b;color:#000;border-radius:8px;
-      padding:12px 24px;font-size:14px;font-weight:600;
-      text-decoration:none;margin-bottom:10px;letter-spacing:.02em;
-    ">⬇ Save Recording</a>
-    <button onclick="document.getElementById('rec-download-overlay').style.display='none'" style="
-      background:none;border:1px solid #2e2e33;color:#606068;
-      border-radius:8px;padding:10px 24px;font-size:13px;cursor:pointer;
-      width:100%;font-family:'Inter',sans-serif;
-    ">Dismiss</button>
-  </div>
-</div>
-
 <!-- Portrait overlay -->
 <div id="portrait-overlay" role="alert">
   <div class="po-logo">
@@ -972,7 +946,7 @@ function showDownloadDialog(url, filename, bytes) {
   sizeEl.textContent = filename + ' · ' + mb + ' MB';
   link.href     = url;
   link.download = filename;
-  overlay.style.cssText = 'display:flex !important';
+  overlay.style.display = 'flex';
   link.onclick  = () => setTimeout(() => URL.revokeObjectURL(url), 5000);
 }
 
@@ -2238,5 +2212,15 @@ if ('serviceWorker' in navigator) {
 
   </div><!-- /#menu-content -->
 </div><!-- /#menu-panel -->
+<!-- Recording download dialog — outside #app so z-index works correctly -->
+<div id="rec-download-overlay" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:99999;background:rgba(0,0,0,.82);align-items:center;justify-content:center;flex-direction:column;gap:0;">
+  <div style="background:#1c1c1f;border:1px solid #3a3a40;border-radius:14px;padding:28px 24px;width:300px;max-width:90vw;text-align:center;font-family:'Inter',sans-serif;box-shadow:0 24px 64px rgba(0,0,0,.8);">
+    <div style="font-size:36px;margin-bottom:10px">🎙</div>
+    <div style="color:#e8e8ec;font-size:17px;font-weight:600;margin-bottom:6px">Recording Complete</div>
+    <div id="rec-file-size" style="color:#606068;font-size:12px;margin-bottom:22px;letter-spacing:.02em"></div>
+    <a id="rec-download-link" style="display:block;background:#d4a84b;color:#000;border-radius:8px;padding:14px 24px;font-size:14px;font-weight:700;text-decoration:none;margin-bottom:10px;letter-spacing:.03em;">⬇ Save Recording</a>
+    <button onclick="document.getElementById('rec-download-overlay').style.display='none'" style="background:none;border:1px solid #2e2e33;color:#606068;border-radius:8px;padding:10px 24px;font-size:13px;cursor:pointer;width:100%;font-family:'Inter',sans-serif;">Dismiss</button>
+  </div>
+</div>
 </body>
 </html>
