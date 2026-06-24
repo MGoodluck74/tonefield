@@ -401,19 +401,7 @@ input[type=range].ui-slider{width:100%;height:3px;accent-color:var(--gold);curso
   #scale-select{min-width:100px}
   #root-select{min-width:54px}
   .tbtn{width:36px;height:36px}
-  /* Menu panel slides up from bottom in portrait */
-  #menu-panel{
-    top:auto;bottom:32px;left:0;right:0;width:100%;
-    height:320px;border-left:none;border-top:1px solid var(--border);
-    transform:translateY(100%);
-  }
-  #menu-panel.open{transform:translateY(0)}
-  #menu-overlay{top:0}
-  /* Stack menu contents horizontally */
-  #menu-panel > .menu-section{
-    display:inline-flex;flex-direction:column;
-    vertical-align:top;width:auto;margin-right:16px;
-  }
+  /* Menu: full screen in all orientations — handled by base CSS */
 }
 
 /* ── Pattern manager modal ── */
