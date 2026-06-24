@@ -136,41 +136,53 @@ select,input{font-family:inherit}
 #menu-btn.open span{background:var(--gold)}
 
 /* ── Slide-out menu panel ── */
-#menu-panel{
-  position:fixed;top:0;left:0;right:0;bottom:0;
-  background:var(--bg-panel);
-  z-index:200;
-  display:flex;flex-direction:column;
-  transform:translateY(100%);transition:transform .28s ease;
-  overflow:hidden;
-}
-#menu-panel.open{transform:translateY(0)}
-/* Menu header */
-#menu-panel-header{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:14px 16px;border-bottom:1px solid var(--border);flex-shrink:0;
-}
-#menu-panel-title{font-size:13px;font-weight:600;color:var(--text);letter-spacing:.06em;text-transform:uppercase}
-#menu-close-btn{
-  width:32px;height:32px;border-radius:6px;
-  background:var(--bg-card);border:1px solid var(--border);
-  color:var(--text-dim);font-size:18px;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-}
-#menu-close-btn:hover{color:var(--text);border-color:var(--border-hi)}
-/* Menu content scrolls inside the panel */
-#menu-content{
-  flex:1;overflow-y:auto;
-  display:grid;
-  /* Two columns on wide screens, one on narrow */
-  grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
-  gap:0;padding:8px;
-}
 #menu-overlay{
   display:none;position:fixed;inset:0;z-index:199;
   background:rgba(0,0,0,.55);
 }
 #menu-overlay.open{display:block}
+#menu-panel{
+  position:fixed;inset:0;z-index:200;
+  background:var(--bg-panel);
+  display:flex;flex-direction:column;
+  transform:translateY(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);
+  overflow:hidden;
+}
+#menu-panel.open{transform:translateY(0)}
+#menu-panel-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 20px;border-bottom:1px solid var(--border);flex-shrink:0;
+  height:56px;
+}
+#menu-panel-title{
+  font-size:11px;font-weight:600;letter-spacing:.14em;
+  color:var(--text-dim);text-transform:uppercase;
+}
+#menu-close-btn{
+  width:36px;height:36px;border-radius:8px;
+  background:var(--bg-card);border:1px solid var(--border);
+  color:var(--text);font-size:20px;font-weight:300;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .1s,border-color .1s;
+}
+#menu-close-btn:hover{background:var(--bg-cell-h);border-color:var(--border-hi)}
+#menu-content{
+  flex:1;overflow-y:auto;
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+  gap:1px;background:var(--border);
+  border-top:1px solid var(--border);
+}
+.menu-section{
+  background:var(--bg-panel);
+  padding:16px;
+  margin-bottom:0;
+}
+.menu-section-label{
+  font-size:9px;font-weight:600;letter-spacing:.14em;
+  color:var(--text-label);text-transform:uppercase;
+  margin-bottom:12px;display:block;
+}
 
 .menu-section{margin-bottom:22px}
 .menu-section-label{
@@ -1056,14 +1068,20 @@ const LiveRecorder = (() => {
         if (e.data && e.data.size > 0) chunks.push(e.data);
       };
 
+      // Capture references in closure so onstop can access them
+      const _mg = masterGain;
+      const _sd = streamDest;
+      const _mr = mediaRecorder;  // will be set after this block
       mediaRecorder.onstop = () => {
-        masterGain.disconnect(streamDest);
-        const blob = new Blob(chunks, { type: mediaRecorder.mimeType || 'audio/webm' });
-        const ext  = blob.type.includes('ogg') ? 'ogg' : 'webm';
-        const url  = URL.createObjectURL(blob);
+        try { _mg.disconnect(_sd); } catch(e) {}
+        const allChunks = chunks.slice();
         chunks = [];
-        // Show in-app download dialog — works in PWA where auto-download is blocked
-        showDownloadDialog(url, `tonefield-live.${ext}`, blob.size);
+        if (allChunks.length === 0) return;
+        const mimeT = _mr ? (_mr.mimeType || 'audio/webm') : 'audio/webm';
+        const blob  = new Blob(allChunks, { type: mimeT });
+        const ext   = mimeT.includes('ogg') ? 'ogg' : 'webm';
+        const url   = URL.createObjectURL(blob);
+        showDownloadDialog(url, 'tonefield-live.' + ext, blob.size);
       };
 
       mediaRecorder.start(100);
