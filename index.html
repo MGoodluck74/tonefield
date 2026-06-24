@@ -60,19 +60,16 @@ select,input{font-family:inherit}
 #logo{display:flex;align-items:center;gap:8px;flex-shrink:0;margin-right:4px}
 .logo-name{font-size:18px;font-weight:600;letter-spacing:-.01em;color:#e8e8ec;line-height:1.1}
 .logo-sub{font-size:8px;letter-spacing:.14em;color:var(--text-dim);text-transform:uppercase;margin-top:2px;display:block}
-/* All controls in one flex row */
-#header-controls{display:flex;align-items:center;gap:8px;flex-shrink:0}
-#header-scale-row{display:flex;align-items:center;gap:8px;flex-shrink:0;margin-left:auto}
 /* Compact on narrow screens */
 @media (max-width:600px){
-  #header{height:52px;padding:0 10px;gap:6px}
+  #header{height:52px;padding:0 8px;gap:5px}
   .logo-sub{display:none}
-  .logo-name{font-size:15px}
-  #bpm-box{font-size:13px;min-width:44px;padding:3px 6px}
-  .tbtn{width:30px;height:30px}
-  .ctrl-label{font-size:7px;letter-spacing:.06em}
-  #scale-select{min-width:80px;font-size:10px;padding:4px 16px 4px 5px}
-  #root-select{min-width:38px;font-size:10px;padding:4px 14px 4px 5px}
+  .logo-name{font-size:14px}
+  #bpm-box{font-size:12px;min-width:40px;padding:2px 5px}
+  .tbtn{width:28px;height:28px}
+  .ctrl-label{font-size:7px}
+  #scale-select{min-width:78px;font-size:10px}
+  #root-select{min-width:36px;font-size:10px}
 }
 
 /* BPM */
@@ -489,10 +486,11 @@ input[type=range].ui-slider{width:100%;height:3px;accent-color:var(--gold);curso
 <body>
 <div id="app">
 
-  <!-- Header -->
+  <!-- Header — single flat flex row -->
   <header id="header">
+    <!-- Logo -->
     <div id="logo">
-      <svg width="40" height="40" viewBox="0 0 44 44" style="flex-shrink:0">
+      <svg width="36" height="36" viewBox="0 0 44 44" style="flex-shrink:0">
         <circle cx="5"  cy="5"  r="3.8" fill="#d4a84b" opacity="0.90"/>
         <circle cx="15" cy="5"  r="3.8" fill="#d4a84b" opacity="0.65"/>
         <circle cx="25" cy="5"  r="3.8" fill="#d4a84b" opacity="0.22"/>
@@ -510,38 +508,41 @@ input[type=range].ui-slider{width:100%;height:3px;accent-color:var(--gold);curso
         <circle cx="25" cy="35" r="3.8" fill="#d4a84b" opacity="0.60"/>
         <circle cx="35" cy="35" r="3.8" fill="#d4a84b" opacity="0.85"/>
       </svg>
-      <div>
-        <span class="logo-name">ToneField</span><br>
+      <div style="display:flex;flex-direction:column;gap:1px">
+        <span class="logo-name">ToneField</span>
         <span class="logo-sub">Minimal Pattern Instrument</span>
       </div>
     </div>
 
-    <!-- Transport controls (always visible) -->
-    <div id="header-controls">
-      <div>
-        <span class="ctrl-label">BPM</span>
-        <div id="bpm-box" title="Drag up/down to change BPM">80.0</div>
-        <input type="range" id="bpm-slider" min="60" max="180" value="80" step="1">
-      </div>
-      <button class="tbtn" id="play-btn" title="Play / Pause  (Space)">
-        <svg id="icon-play"  width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
-        <svg id="icon-pause" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
-      </button>
-      <button class="tbtn" id="stop-btn" title="Stop  (Escape)">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="1"/></svg>
-      </button>
-      <button class="tbtn" id="btn-rec" title="Record live audio">
-        <svg width="12" height="12" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="#c94040"/></svg>
-      </button>
-      <button id="menu-btn" title="Menu" aria-label="Open menu">
-        <span></span><span></span><span></span>
-      </button>
+    <!-- Spacer pushes everything else right -->
+    <div style="flex:1"></div>
+
+    <!-- BPM -->
+    <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
+      <span class="ctrl-label">BPM</span>
+      <div id="bpm-box" title="Drag up/down to change BPM">80.0</div>
+      <input type="range" id="bpm-slider" min="60" max="180" value="80" step="1" style="display:none">
     </div>
 
-    <!-- Scale + Key (second row on narrow screens) -->
-    <div id="header-scale-row">
-      <div>
-        <span class="ctrl-label">Scale</span>
+    <!-- Play -->
+    <button class="tbtn" id="play-btn" title="Play / Pause  (Space)">
+      <svg id="icon-play"  width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
+      <svg id="icon-pause" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+    </button>
+
+    <!-- Stop -->
+    <button class="tbtn" id="stop-btn" title="Stop  (Escape)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="1"/></svg>
+    </button>
+
+    <!-- Record -->
+    <button class="tbtn" id="btn-rec" title="Record live audio">
+      <svg width="12" height="12" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="#c94040"/></svg>
+    </button>
+
+    <!-- Scale -->
+    <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
+      <span class="ctrl-label">Scale</span>
       <select id="scale-select" class="hdr-select">
         <optgroup label="Pentatonic">
           <option value="pent_major">Major Pentatonic</option>
@@ -564,7 +565,9 @@ input[type=range].ui-slider{width:100%;height:3px;accent-color:var(--gold);curso
         </optgroup>
       </select>
     </div>
-    <div>
+
+    <!-- Key -->
+    <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
       <span class="ctrl-label">Key</span>
       <select id="root-select" class="hdr-select">
         <option value="C" selected>C</option>
@@ -582,7 +585,11 @@ input[type=range].ui-slider{width:100%;height:3px;accent-color:var(--gold);curso
       </select>
     </div>
 
-    </div><!-- /#header-scale-row -->
+    <!-- Menu -->
+    <button id="menu-btn" title="Menu" aria-label="Open menu">
+      <span></span><span></span><span></span>
+    </button>
+
   </header>
 
   <!-- Main: grid only -->
