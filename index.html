@@ -16,7 +16,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ToneField</title>
 <meta name="mobile-web-app-capable" content="yes">
-<link rel="manifest" href="manifest.json">
+<link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -2000,8 +2000,10 @@ const App = (() => {
     const recBtn = document.getElementById('btn-rec');
     if (recBtn) {
       if (!LiveRecorder.isSupported()) {
-        recBtn.style.display = 'none';
-      } else {
+        recBtn.title = 'Recording not supported in this browser';
+        recBtn.style.opacity = '0.4';
+      }
+      {
         recBtn.addEventListener('click', () => {
           if (LiveRecorder.isRecording()) {
             LiveRecorder.stop();
@@ -2108,7 +2110,7 @@ const App = (() => {
 // ── Service Worker (PWA offline support) ────────────────────────
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => {});
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
   });
 }
 </script>
