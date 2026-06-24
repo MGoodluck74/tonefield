@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ToneField Audio Debug 2</title>
+<style>
+  body{background:#111;color:#eee;font-family:monospace;padding:20px;font-size:14px}
+  button{display:block;width:100%;padding:18px;margin:8px 0;font-size:16px;
+         background:#d4a84b;color:#000;border:none;border-radius:8px;font-weight:bold}
+  button.blue{background:#4af;color:#000}
+  button.grey{background:#333;color:#aaa}
+  #log{background:#000;padding:12px;margin-top:16px;border-radius:6px;
+       min-height:200px;white-space:pre-wrap;font-size:12px;line-height:1.6}
+  .ok{color:#4f4} .err{color:#f44} .info{color:#4af}
+</style>
+</head>
+<body>
+<h2 style="color:#d4a84b">ToneField Audio Debug 2</h2>
+<p style="color:#888;font-size:12px">These tests find exactly why Web Audio is silent</p>
+
+<button onclick="t1()">1. Play audio via HTML Audio element (like YouTube)</button>
+<button onclick="t2()">2. Create AudioContext + play tone (standard way)</button>
+<button onclick="t3()">3. Play tone via MediaElementSource (bridge method)</button>
+<button onclick="t4()">4. Try sampleRate 48000 instead of 44100</button>
+<button onclick="t5()">5. Play LOUDER tone (gain = 1.0)</button>
+<button onclick="t6()">6. Check all AudioContext properties</button>
+<button onclick="copyLog()" class="grey">Copy Log</button>
+
+<!-- Hidden audio element for test 1 and 3 -->
+<audio id="test-audio" style="display:none">
+  <!-- inline sine wave as data URI -->
+</audio>
+
+<div id="log">Ready...\n</div>
+
+<script>
+var ctx = null;
+var log = document.getElementById('log');
+
+function L(msg, cls) {
+  var t = new Date().toLocaleTimeString('en-AU', {hour12:false});
+  var span = document.createElement('span');
+  span.className = cls || '';
+  span.textContent = '[' + t + '] ' + msg + '\n';
+  log.appendChild(span);
+  log.scrollTop = log.scrollHeight;
+}
+
+function makeCtx() {
+  if (!ctx) {
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (ctx.state === 'suspended') {
+    return ctx.resume();
+  }
+  return Promise.resolve();
+}
+
+// Test 1: HTML Audio element — does THIS play?
+function t1() {
+  L('--- TEST 1: HTML Audio element ---', 'info');
+  // Generate a simple beep using oscillator through MediaStream
+  try {
+    makeCtx().then(function() {
+      // Create oscillator, connect to stream destination
+      var streamDest = ctx.createMediaStreamDestination();
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.frequency.value = 440;
+      gain.gain.value = 0.5;
+      osc.connect(gain);
+      gain.connect(streamDest);
+      osc.start();
+      
+      // Play the stream through an audio element
+      var audio = document.createElement('audio');
+      audio.srcObject = streamDest.stream;
+      audio.play().then(function() {
+        L('✓ MediaStream audio element playing — hear it?', 'ok');
+        setTimeout(function() { osc.stop(); audio.pause(); }, 1500);
+      }).catch(function(e) {
+        L('✗ audio.play() failed: ' + e.message, 'err');
+        osc.stop();
+      });
+    });
+  } catch(e) {
+    L('✗ Error: ' + e.message, 'err');
+  }
+}
+
+// Test 2: Standard Web Audio
+function t2() {
+  L('--- TEST 2: Standard Web Audio ---', 'info');
+  makeCtx().then(function() {
+    L('Context state: ' + ctx.state, ctx.state==='running'?'ok':'err');
+    var osc = ctx.createOscillator();
+    var gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = 440;
+    gain.gain.value = 1.0;  // full volume
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 2.0);
+    L('Tone at 440Hz, gain=1.0 for 2 seconds — hear it?', 'ok');
+    L('currentTime: ' + ctx.currentTime.toFixed(3));
+  });
+}
+
+// Test 3: Different frequency
+function t3() {
+  L('--- TEST 3: Low frequency 110Hz ---', 'info');
+  makeCtx().then(function() {
+    var osc = ctx.createOscillator();
+    var gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = 110;  // low A — very audible
+    gain.gain.value = 1.0;
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 2.0);
+    L('Low tone 110Hz, gain=1.0 for 2 seconds — hear it?', 'ok');
+  });
+}
+
+// Test 4: Square wave (more harmonics, easier to hear)
+function t4() {
+  L('--- TEST 4: Square wave 220Hz ---', 'info');
+  makeCtx().then(function() {
+    var osc = ctx.createOscillator();
+    var gain = ctx.createGain();
+    osc.type = 'square';  // buzzy, unmissable
+    osc.frequency.value = 220;
+    gain.gain.value = 0.5;
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 2.0);
+    L('Square wave 220Hz, gain=0.5 for 2 seconds — hear it?', 'ok');
+  });
+}
+
+// Test 5: Check if output goes through analyser
+function t5() {
+  L('--- TEST 5: Analyser check ---', 'info');
+  makeCtx().then(function() {
+    var osc = ctx.createOscillator();
+    var analyser = ctx.createAnalyser();
+    var gain = ctx.createGain();
+    osc.frequency.value = 440;
+    gain.gain.value = 1.0;
+    osc.connect(gain);
+    gain.connect(analyser);
+    analyser.connect(ctx.destination);
+    osc.start(ctx.currentTime);
+    
+    // Check if analyser is getting signal
+    setTimeout(function() {
+      var data = new Float32Array(analyser.frequencyBinCount);
+      analyser.getFloatFrequencyData(data);
+      var max = Math.max.apply(null, data);
+      L('Analyser max dB: ' + max.toFixed(1) + ' (should be > -100 if audio is flowing)', max > -100 ? 'ok' : 'err');
+      osc.stop();
+    }, 500);
+    L('Playing and checking analyser...', 'info');
+  });
+}
+
+// Test 6: Full context info
+function t6() {
+  L('--- TEST 6: Full context info ---', 'info');
+  makeCtx().then(function() {
+    L('state: ' + ctx.state);
+    L('sampleRate: ' + ctx.sampleRate);
+    L('currentTime: ' + ctx.currentTime.toFixed(4));
+    L('baseLatency: ' + (ctx.baseLatency || 'N/A'));
+    L('outputLatency: ' + (ctx.outputLatency || 'N/A'));
+    L('destination.channelCount: ' + ctx.destination.channelCount);
+    L('destination.maxChannelCount: ' + ctx.destination.maxChannelCount);
+    L('destination.numberOfInputs: ' + ctx.destination.numberOfInputs);
+    // Check if output is actually connected
+    L('destination.channelCountMode: ' + ctx.destination.channelCountMode);
+    if (ctx.destination.maxChannelCount === 0) {
+      L('⚠ maxChannelCount is 0 — audio output may be disconnected!', 'err');
+    } else {
+      L('✓ Output channels available: ' + ctx.destination.maxChannelCount, 'ok');
+    }
+  });
+}
+
+function copyLog() {
+  var text = log.innerText;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(function() { alert('Copied!'); });
+  } else {
+    var ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta); alert('Copied!');
+  }
+}
+</script>
+</body>
+</html>
