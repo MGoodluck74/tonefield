@@ -839,6 +839,33 @@ input[type=range].ui-slider{width:100%;height:3px;accent-color:var(--gold);curso
   <div style="color:#48484f;font-size:12px;font-family:'Inter',sans-serif">Audio requires a tap on iOS</div>
 </div>
 
+<!-- Recording download dialog -->
+<div id="rec-download-overlay" style="
+  display:none;position:fixed;inset:0;z-index:9000;
+  background:rgba(0,0,0,.75);
+  align-items:center;justify-content:center;
+">
+  <div style="
+    background:#1c1c1f;border:1px solid #3a3a40;border-radius:12px;
+    padding:24px;max-width:320px;width:90%;text-align:center;
+    font-family:'Inter',sans-serif;
+  ">
+    <div style="color:#d4a84b;font-size:32px;margin-bottom:8px">●</div>
+    <div style="color:#e8e8ec;font-size:16px;font-weight:600;margin-bottom:6px">Recording Complete</div>
+    <div id="rec-file-size" style="color:#606068;font-size:12px;margin-bottom:20px"></div>
+    <a id="rec-download-link" style="
+      display:block;background:#d4a84b;color:#000;border-radius:8px;
+      padding:12px 24px;font-size:14px;font-weight:600;
+      text-decoration:none;margin-bottom:10px;letter-spacing:.02em;
+    ">⬇ Save Recording</a>
+    <button onclick="document.getElementById('rec-download-overlay').style.display='none'" style="
+      background:none;border:1px solid #2e2e33;color:#606068;
+      border-radius:8px;padding:10px 24px;font-size:13px;cursor:pointer;
+      width:100%;font-family:'Inter',sans-serif;
+    ">Dismiss</button>
+  </div>
+</div>
+
 <!-- Portrait overlay -->
 <div id="portrait-overlay" role="alert">
   <div class="po-logo">
@@ -1027,11 +1054,9 @@ const LiveRecorder = (() => {
         const blob = new Blob(chunks, { type: mediaRecorder.mimeType || 'audio/webm' });
         const ext  = blob.type.includes('ogg') ? 'ogg' : 'webm';
         const url  = URL.createObjectURL(blob);
-        const a    = Object.assign(document.createElement('a'),
-          { href: url, download: `tonefield-live.${ext}` });
-        document.body.appendChild(a); a.click();
-        document.body.removeChild(a); URL.revokeObjectURL(url);
         chunks = [];
+        // Show in-app download dialog — works in PWA where auto-download is blocked
+        showDownloadDialog(url, `tonefield-live.${ext}`, blob.size);
       };
 
       mediaRecorder.start(100); // collect in 100ms chunks
@@ -1055,6 +1080,24 @@ const LiveRecorder = (() => {
 
   return { start, stop, isRecording, isSupported };
 })();
+
+// ── Recording download dialog ────────────────────────────────────
+function showDownloadDialog(url, filename, bytes) {
+  const overlay = document.getElementById('rec-download-overlay');
+  const link    = document.getElementById('rec-download-link');
+  const sizeEl  = document.getElementById('rec-file-size');
+  if (!overlay || !link) {
+    const a = Object.assign(document.createElement('a'), { href: url, download: filename });
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    return;
+  }
+  const mb = (bytes / (1024*1024)).toFixed(1);
+  sizeEl.textContent = filename + ' · ' + mb + ' MB';
+  link.href     = url;
+  link.download = filename;
+  overlay.style.display = 'flex';
+  link.onclick  = () => setTimeout(() => URL.revokeObjectURL(url), 5000);
+}
 
 
 // ================================================================
