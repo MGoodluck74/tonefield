@@ -53,43 +53,26 @@ select,input{font-family:inherit}
 
 /* ── Header ── */
 #header{
-  display:flex;flex-wrap:wrap;align-items:center;
-  padding:6px 12px;border-bottom:1px solid var(--border);
-  background:var(--bg-panel);flex-shrink:0;gap:8px;
-  min-height:52px;
+  height:60px;display:flex;align-items:center;gap:10px;
+  padding:0 14px;border-bottom:1px solid var(--border);
+  background:var(--bg-panel);flex-shrink:0;overflow:hidden;
 }
-#logo{display:flex;align-items:center;gap:8px;flex-shrink:0}
+#logo{display:flex;align-items:center;gap:8px;flex-shrink:0;margin-right:4px}
 .logo-name{font-size:18px;font-weight:600;letter-spacing:-.01em;color:#e8e8ec;line-height:1.1}
 .logo-sub{font-size:8px;letter-spacing:.14em;color:var(--text-dim);text-transform:uppercase;margin-top:2px;display:block}
-/* Transport controls: BPM, play, stop, rec, menu — always one row */
-#header-controls{
-  display:flex;align-items:center;gap:8px;
-  margin-left:auto;
-  flex-shrink:0;
-}
-/* Scale + Key row — sits below on narrow screens */
-#header-scale-row{
-  display:flex;align-items:center;gap:6px;
-  flex-shrink:0;
-}
-@media (min-width:600px){
-  /* Wide enough — put scale/key inline with controls */
-  #header-scale-row{order:-1;margin-left:0}
-  #header-controls{order:1}
-}
-@media (max-width:599px){
-  /* Narrow — scale/key drops to second row */
-  #header{padding:5px 10px}
-  #logo{flex:0 0 auto}
-  #header-controls{margin-left:auto}
-  #header-scale-row{width:100%;padding-bottom:3px}
+/* All controls in one flex row */
+#header-controls{display:flex;align-items:center;gap:8px;flex-shrink:0}
+#header-scale-row{display:flex;align-items:center;gap:8px;flex-shrink:0;margin-left:auto}
+/* Compact on narrow screens */
+@media (max-width:600px){
+  #header{height:52px;padding:0 10px;gap:6px}
   .logo-sub{display:none}
-  .logo-name{font-size:16px}
+  .logo-name{font-size:15px}
   #bpm-box{font-size:13px;min-width:44px;padding:3px 6px}
   .tbtn{width:30px;height:30px}
-  .ctrl-label{font-size:7px}
-  #scale-select{flex:1;min-width:0;font-size:11px}
-  #root-select{min-width:44px;font-size:11px}
+  .ctrl-label{font-size:7px;letter-spacing:.06em}
+  #scale-select{min-width:80px;font-size:10px;padding:4px 16px 4px 5px}
+  #root-select{min-width:38px;font-size:10px;padding:4px 14px 4px 5px}
 }
 
 /* BPM */
@@ -142,10 +125,14 @@ select,input{font-family:inherit}
 }
 #menu-overlay.open{display:block}
 #menu-panel{
-  position:fixed;inset:0;z-index:200;
+  position:fixed;
+  top:0;left:0;right:0;bottom:0;
+  width:100vw;height:100vh;
+  z-index:9000;
   background:var(--bg-panel);
   display:flex;flex-direction:column;
-  transform:translateY(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);
+  transform:translateY(100%);
+  transition:transform .28s cubic-bezier(.4,0,.2,1);
   overflow:hidden;
 }
 #menu-panel.open{transform:translateY(0)}
@@ -1076,11 +1063,16 @@ const LiveRecorder = (() => {
         try { _mg.disconnect(_sd); } catch(e) {}
         const allChunks = chunks.slice();
         chunks = [];
-        if (allChunks.length === 0) return;
+        console.log('Recording stopped. Chunks:', allChunks.length);
+        if (allChunks.length === 0) {
+          alert('No audio recorded — make sure notes are playing while recording.');
+          return;
+        }
         const mimeT = _mr ? (_mr.mimeType || 'audio/webm') : 'audio/webm';
         const blob  = new Blob(allChunks, { type: mimeT });
         const ext   = mimeT.includes('ogg') ? 'ogg' : 'webm';
         const url   = URL.createObjectURL(blob);
+        console.log('Blob size:', blob.size, 'type:', mimeT);
         showDownloadDialog(url, 'tonefield-live.' + ext, blob.size);
       };
 
@@ -1120,7 +1112,7 @@ function showDownloadDialog(url, filename, bytes) {
   sizeEl.textContent = filename + ' · ' + mb + ' MB';
   link.href     = url;
   link.download = filename;
-  overlay.style.display = 'flex';
+  overlay.style.cssText = 'display:flex !important';
   link.onclick  = () => setTimeout(() => URL.revokeObjectURL(url), 5000);
 }
 
