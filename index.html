@@ -647,141 +647,6 @@ input[type=range].ui-slider{width:100%;height:3px;accent-color:var(--gold);curso
 
 </div><!-- /#app -->
 
-<!-- Full-screen menu -->
-<div id="menu-overlay"></div>
-<div id="menu-panel">
-  <div id="menu-panel-header">
-    <span id="menu-panel-title">Menu</span>
-    <button id="menu-close-btn" aria-label="Close menu">×</button>
-  </div>
-  <div id="menu-content">
-
-  <!-- Transform -->
-  <div class="menu-section">
-    <span class="menu-section-label">Transform</span>
-    <button class="tfm-btn" data-action="flipH">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 4l-4 8 4 8M17 4l4 8-4 8M12 3v18"/></svg>Flip Horizontal
-    </button>
-    <button class="tfm-btn" data-action="flipV">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7l8-4 8 4M4 17l8 4 8-4M3 12h18"/></svg>Flip Vertical
-    </button>
-    <button class="tfm-btn" data-action="rotateR">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12a7 7 0 1 1 2 5"/><polyline points="5 21 5 15 11 15"/></svg>Rotate →
-    </button>
-    <button class="tfm-btn" data-action="rotateL">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12a7 7 0 1 0-2 5"/><polyline points="19 21 19 15 13 15"/></svg>Rotate ←
-    </button>
-    <button class="tfm-btn" data-action="shiftUp">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>Shift Up
-    </button>
-    <button class="tfm-btn" data-action="shiftDown">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>Shift Down
-    </button>
-    <button class="tfm-btn" data-action="shiftLeft">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>Shift Left
-    </button>
-    <button class="tfm-btn" data-action="shiftRight">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>Shift Right
-    </button>
-    <button class="tfm-btn" data-action="shuffle">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>Random
-    </button>
-  </div>
-
-  <!-- Velocity -->
-  <div class="menu-section">
-    <span class="menu-section-label">Velocity</span>
-    <div class="slider-row"><span class="slider-name">Level</span><span class="slider-val" id="vel-val">80</span></div>
-    <input type="range" class="ui-slider" id="vel-slider" min="1" max="127" value="80">
-  </div>
-
-  <!-- Gate -->
-  <div class="menu-section">
-    <span class="menu-section-label">Gate</span>
-    <div class="slider-row"><span class="slider-name">Length</span><span class="slider-val" id="gate-val">60%</span></div>
-    <input type="range" class="ui-slider" id="gate-slider" min="1" max="100" value="60">
-  </div>
-
-  <!-- Delay -->
-  <div class="menu-section">
-    <span class="menu-section-label">Delay</span>
-
-    <div class="knob-row">
-      <span class="knob-name">Time</span>
-      <span class="knob-readout"><span id="delay-time-val">372</span><span class="unit"> ms</span></span>
-    </div>
-    <div class="knob-svg-wrap" id="knob-time" data-param="time" data-min="50" data-max="800" data-val="372">
-      <svg viewBox="0 0 64 64">
-        <circle cx="32" cy="32" r="28" fill="#1c1c1f" stroke="#2e2e33" stroke-width="1.5"/>
-        <circle cx="32" cy="32" r="20" fill="none" stroke="#2e2e33" stroke-width="2.5"/>
-        <path id="knob-time-arc"  fill="none" stroke="#d4a84b" stroke-width="2.5" stroke-linecap="round"/>
-        <line id="knob-time-line" stroke="#d4a84b" stroke-width="2" stroke-linecap="round"/>
-      </svg>
-    </div>
-
-    <div class="knob-row">
-      <span class="knob-name">Feedback</span>
-      <span class="knob-readout"><span id="delay-feedback-val">25</span><span class="unit">%</span></span>
-    </div>
-    <div class="knob-svg-wrap" id="knob-feedback" data-param="feedback" data-min="0" data-max="90" data-val="25">
-      <svg viewBox="0 0 64 64">
-        <circle cx="32" cy="32" r="28" fill="#1c1c1f" stroke="#2e2e33" stroke-width="1.5"/>
-        <circle cx="32" cy="32" r="20" fill="none" stroke="#2e2e33" stroke-width="2.5"/>
-        <path id="knob-feedback-arc"  fill="none" stroke="#d4a84b" stroke-width="2.5" stroke-linecap="round"/>
-        <line id="knob-feedback-line" stroke="#d4a84b" stroke-width="2" stroke-linecap="round"/>
-      </svg>
-    </div>
-
-    <div class="knob-row">
-      <span class="knob-name">Filter</span>
-      <span class="knob-readout"><span id="delay-filter-val">6.0</span><span class="unit"> kHz</span></span>
-    </div>
-    <div class="knob-svg-wrap" id="knob-filter" data-param="filter" data-min="500" data-max="12000" data-val="6000">
-      <svg viewBox="0 0 64 64">
-        <circle cx="32" cy="32" r="28" fill="#1c1c1f" stroke="#2e2e33" stroke-width="1.5"/>
-        <circle cx="32" cy="32" r="20" fill="none" stroke="#2e2e33" stroke-width="2.5"/>
-        <path id="knob-filter-arc"  fill="none" stroke="#d4a84b" stroke-width="2.5" stroke-linecap="round"/>
-        <line id="knob-filter-line" stroke="#d4a84b" stroke-width="2" stroke-linecap="round"/>
-      </svg>
-    </div>
-
-    <div class="knob-row">
-      <span class="knob-name">Mix</span>
-      <span class="knob-readout"><span id="delay-mix-val">25</span><span class="unit">%</span></span>
-    </div>
-    <div class="knob-svg-wrap" id="knob-mix" data-param="mix" data-min="0" data-max="100" data-val="25">
-      <svg viewBox="0 0 64 64">
-        <circle cx="32" cy="32" r="28" fill="#1c1c1f" stroke="#2e2e33" stroke-width="1.5"/>
-        <circle cx="32" cy="32" r="20" fill="none" stroke="#2e2e33" stroke-width="2.5"/>
-        <path id="knob-mix-arc"  fill="none" stroke="#d4a84b" stroke-width="2.5" stroke-linecap="round"/>
-        <line id="knob-mix-line" stroke="#d4a84b" stroke-width="2" stroke-linecap="round"/>
-      </svg>
-    </div>
-
-    <button id="delay-on-btn">Delay ON</button>
-  </div>
-
-  <!-- MIDI Output -->
-  <div class="menu-section">
-    <span class="menu-section-label">Live MIDI Out</span>
-    <div id="midi-status" style="font-size:10px;color:var(--text-dim);margin-bottom:6px">Not connected</div>
-    <select id="midi-output-select" class="select-control" style="width:100%;margin-bottom:6px;background:var(--bg-card);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:5px 8px;font-size:11px">
-      <option value="">— No MIDI outputs found —</option>
-    </select>
-    <button class="tfm-btn" id="btn-midi-connect" style="justify-content:center">Connect MIDI</button>
-    <div style="font-size:9px;color:var(--text-label);margin-top:6px;line-height:1.5">
-      Chrome only. In Logic: Preferences → MIDI → enable IAC Driver Bus.
-    </div>
-  </div>
-
-  <!-- Clear -->
-  <div class="menu-section">
-    <span class="menu-section-label">Pattern</span>
-    <button class="danger-btn" id="btn-new">Clear Pattern</button>
-  </div>
-
-  </div><!-- /#menu-content -->
-</div><!-- /#menu-panel -->
 
 
 <!-- Probability popover -->
@@ -2249,5 +2114,141 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
+
+<!-- Full-screen menu -->
+<div id="menu-overlay"></div>
+<div id="menu-panel">
+  <div id="menu-panel-header">
+    <span id="menu-panel-title">Menu</span>
+    <button id="menu-close-btn" aria-label="Close menu">×</button>
+  </div>
+  <div id="menu-content">
+
+  <!-- Transform -->
+  <div class="menu-section">
+    <span class="menu-section-label">Transform</span>
+    <button class="tfm-btn" data-action="flipH">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 4l-4 8 4 8M17 4l4 8-4 8M12 3v18"/></svg>Flip Horizontal
+    </button>
+    <button class="tfm-btn" data-action="flipV">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7l8-4 8 4M4 17l8 4 8-4M3 12h18"/></svg>Flip Vertical
+    </button>
+    <button class="tfm-btn" data-action="rotateR">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12a7 7 0 1 1 2 5"/><polyline points="5 21 5 15 11 15"/></svg>Rotate →
+    </button>
+    <button class="tfm-btn" data-action="rotateL">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12a7 7 0 1 0-2 5"/><polyline points="19 21 19 15 13 15"/></svg>Rotate ←
+    </button>
+    <button class="tfm-btn" data-action="shiftUp">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>Shift Up
+    </button>
+    <button class="tfm-btn" data-action="shiftDown">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>Shift Down
+    </button>
+    <button class="tfm-btn" data-action="shiftLeft">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>Shift Left
+    </button>
+    <button class="tfm-btn" data-action="shiftRight">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>Shift Right
+    </button>
+    <button class="tfm-btn" data-action="shuffle">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>Random
+    </button>
+  </div>
+
+  <!-- Velocity -->
+  <div class="menu-section">
+    <span class="menu-section-label">Velocity</span>
+    <div class="slider-row"><span class="slider-name">Level</span><span class="slider-val" id="vel-val">80</span></div>
+    <input type="range" class="ui-slider" id="vel-slider" min="1" max="127" value="80">
+  </div>
+
+  <!-- Gate -->
+  <div class="menu-section">
+    <span class="menu-section-label">Gate</span>
+    <div class="slider-row"><span class="slider-name">Length</span><span class="slider-val" id="gate-val">60%</span></div>
+    <input type="range" class="ui-slider" id="gate-slider" min="1" max="100" value="60">
+  </div>
+
+  <!-- Delay -->
+  <div class="menu-section">
+    <span class="menu-section-label">Delay</span>
+
+    <div class="knob-row">
+      <span class="knob-name">Time</span>
+      <span class="knob-readout"><span id="delay-time-val">372</span><span class="unit"> ms</span></span>
+    </div>
+    <div class="knob-svg-wrap" id="knob-time" data-param="time" data-min="50" data-max="800" data-val="372">
+      <svg viewBox="0 0 64 64">
+        <circle cx="32" cy="32" r="28" fill="#1c1c1f" stroke="#2e2e33" stroke-width="1.5"/>
+        <circle cx="32" cy="32" r="20" fill="none" stroke="#2e2e33" stroke-width="2.5"/>
+        <path id="knob-time-arc"  fill="none" stroke="#d4a84b" stroke-width="2.5" stroke-linecap="round"/>
+        <line id="knob-time-line" stroke="#d4a84b" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </div>
+
+    <div class="knob-row">
+      <span class="knob-name">Feedback</span>
+      <span class="knob-readout"><span id="delay-feedback-val">25</span><span class="unit">%</span></span>
+    </div>
+    <div class="knob-svg-wrap" id="knob-feedback" data-param="feedback" data-min="0" data-max="90" data-val="25">
+      <svg viewBox="0 0 64 64">
+        <circle cx="32" cy="32" r="28" fill="#1c1c1f" stroke="#2e2e33" stroke-width="1.5"/>
+        <circle cx="32" cy="32" r="20" fill="none" stroke="#2e2e33" stroke-width="2.5"/>
+        <path id="knob-feedback-arc"  fill="none" stroke="#d4a84b" stroke-width="2.5" stroke-linecap="round"/>
+        <line id="knob-feedback-line" stroke="#d4a84b" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </div>
+
+    <div class="knob-row">
+      <span class="knob-name">Filter</span>
+      <span class="knob-readout"><span id="delay-filter-val">6.0</span><span class="unit"> kHz</span></span>
+    </div>
+    <div class="knob-svg-wrap" id="knob-filter" data-param="filter" data-min="500" data-max="12000" data-val="6000">
+      <svg viewBox="0 0 64 64">
+        <circle cx="32" cy="32" r="28" fill="#1c1c1f" stroke="#2e2e33" stroke-width="1.5"/>
+        <circle cx="32" cy="32" r="20" fill="none" stroke="#2e2e33" stroke-width="2.5"/>
+        <path id="knob-filter-arc"  fill="none" stroke="#d4a84b" stroke-width="2.5" stroke-linecap="round"/>
+        <line id="knob-filter-line" stroke="#d4a84b" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </div>
+
+    <div class="knob-row">
+      <span class="knob-name">Mix</span>
+      <span class="knob-readout"><span id="delay-mix-val">25</span><span class="unit">%</span></span>
+    </div>
+    <div class="knob-svg-wrap" id="knob-mix" data-param="mix" data-min="0" data-max="100" data-val="25">
+      <svg viewBox="0 0 64 64">
+        <circle cx="32" cy="32" r="28" fill="#1c1c1f" stroke="#2e2e33" stroke-width="1.5"/>
+        <circle cx="32" cy="32" r="20" fill="none" stroke="#2e2e33" stroke-width="2.5"/>
+        <path id="knob-mix-arc"  fill="none" stroke="#d4a84b" stroke-width="2.5" stroke-linecap="round"/>
+        <line id="knob-mix-line" stroke="#d4a84b" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </div>
+
+    <button id="delay-on-btn">Delay ON</button>
+  </div>
+
+  <!-- MIDI Output -->
+  <div class="menu-section">
+    <span class="menu-section-label">Live MIDI Out</span>
+    <div id="midi-status" style="font-size:10px;color:var(--text-dim);margin-bottom:6px">Not connected</div>
+    <select id="midi-output-select" class="select-control" style="width:100%;margin-bottom:6px;background:var(--bg-card);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:5px 8px;font-size:11px">
+      <option value="">— No MIDI outputs found —</option>
+    </select>
+    <button class="tfm-btn" id="btn-midi-connect" style="justify-content:center">Connect MIDI</button>
+    <div style="font-size:9px;color:var(--text-label);margin-top:6px;line-height:1.5">
+      Chrome only. In Logic: Preferences → MIDI → enable IAC Driver Bus.
+    </div>
+  </div>
+
+  <!-- Clear -->
+  <div class="menu-section">
+    <span class="menu-section-label">Pattern</span>
+    <button class="danger-btn" id="btn-new">Clear Pattern</button>
+  </div>
+
+  </div><!-- /#menu-content -->
+</div><!-- /#menu-panel -->
 </body>
 </html>
