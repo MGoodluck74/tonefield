@@ -1022,12 +1022,19 @@ const LiveRecorder = (() => {
 
   function start() {
     if (recording) return;
-    const ctx = AudioEngine.getContext();
-    const masterGain = AudioEngine.getMasterGain();
-    if (!ctx || !masterGain) {
-      alert('Start playback first, then hit record.');
-      return;
-    }
+    // Ensure audio context exists — resume() creates it if needed
+    return AudioEngine.resume().then(() => {
+      const ctx = AudioEngine.getContext();
+      const masterGain = AudioEngine.getMasterGain();
+      if (!ctx || !masterGain) {
+        alert('Audio not available. Please tap Play first.');
+        return false;
+      }
+      return _startRecording(ctx, masterGain);
+    });
+  }
+
+  function _startRecording(ctx, masterGain) {
     try {
       // Tap off the masterGain into a MediaStream for recording
       const streamDest = ctx.createMediaStreamDestination();
@@ -1059,12 +1066,12 @@ const LiveRecorder = (() => {
         showDownloadDialog(url, `tonefield-live.${ext}`, blob.size);
       };
 
-      mediaRecorder.start(100); // collect in 100ms chunks
+      mediaRecorder.start(100);
       recording = true;
       return true;
     } catch(e) {
       console.error('LiveRecorder error:', e);
-      alert('Recording not supported in this browser.');
+      alert('Recording not supported in this browser: ' + e.message);
       return false;
     }
   }
@@ -2122,12 +2129,13 @@ const App = (() => {
             recBtn.title = 'Record live audio';
           } else {
             if (!isPlaying) play();  // auto-start playback
-            const ok = LiveRecorder.start();
-            if (ok) {
-              recBtn.style.color = '#c94040';
-              recBtn.querySelector('circle').setAttribute('fill', '#fff');
-              recBtn.title = 'Stop recording';
-            }
+            Promise.resolve(LiveRecorder.start()).then(ok => {
+              if (ok) {
+                recBtn.style.color = '#c94040';
+                recBtn.querySelector('circle').setAttribute('fill', '#fff');
+                recBtn.title = 'Stop recording — tap to save';
+              }
+            });
           }
         });
       }
