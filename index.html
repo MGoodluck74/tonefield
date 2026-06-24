@@ -53,17 +53,43 @@ select,input{font-family:inherit}
 
 /* ── Header ── */
 #header{
-  height:64px;display:flex;align-items:center;
-  padding:0 16px;border-bottom:1px solid var(--border);
-  background:var(--bg-panel);flex-shrink:0;
+  display:flex;flex-wrap:wrap;align-items:center;
+  padding:6px 12px;border-bottom:1px solid var(--border);
+  background:var(--bg-panel);flex-shrink:0;gap:8px;
+  min-height:52px;
 }
-/* Logo stays left, controls cluster pushes to the right */
-#logo{display:flex;align-items:center;gap:10px;flex-shrink:0}
-.logo-name{font-size:20px;font-weight:600;letter-spacing:-.01em;color:#e8e8ec;line-height:1.1}
-.logo-sub{font-size:8px;letter-spacing:.18em;color:var(--text-dim);text-transform:uppercase;margin-top:2px;display:block}
+#logo{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.logo-name{font-size:18px;font-weight:600;letter-spacing:-.01em;color:#e8e8ec;line-height:1.1}
+.logo-sub{font-size:8px;letter-spacing:.14em;color:var(--text-dim);text-transform:uppercase;margin-top:2px;display:block}
+/* Transport controls: BPM, play, stop, rec, menu — always one row */
 #header-controls{
-  display:flex;align-items:center;gap:12px;
-  margin-left:auto;  /* pushes everything right */
+  display:flex;align-items:center;gap:8px;
+  margin-left:auto;
+  flex-shrink:0;
+}
+/* Scale + Key row — sits below on narrow screens */
+#header-scale-row{
+  display:flex;align-items:center;gap:6px;
+  flex-shrink:0;
+}
+@media (min-width:600px){
+  /* Wide enough — put scale/key inline with controls */
+  #header-scale-row{order:-1;margin-left:0}
+  #header-controls{order:1}
+}
+@media (max-width:599px){
+  /* Narrow — scale/key drops to second row */
+  #header{padding:5px 10px}
+  #logo{flex:0 0 auto}
+  #header-controls{margin-left:auto}
+  #header-scale-row{width:100%;padding-bottom:3px}
+  .logo-sub{display:none}
+  .logo-name{font-size:16px}
+  #bpm-box{font-size:13px;min-width:44px;padding:3px 6px}
+  .tbtn{width:30px;height:30px}
+  .ctrl-label{font-size:7px}
+  #scale-select{flex:1;min-width:0;font-size:11px}
+  #root-select{min-width:44px;font-size:11px}
 }
 
 /* BPM */
@@ -491,31 +517,32 @@ input[type=range].ui-slider{width:100%;height:3px;accent-color:var(--gold);curso
       </div>
     </div>
 
-    <!-- All controls grouped right of logo -->
+    <!-- Transport controls (always visible) -->
     <div id="header-controls">
-
-    <!-- BPM -->
-    <div>
-      <span class="ctrl-label">BPM</span>
-      <div id="bpm-box" title="Drag up/down to change BPM">80.0</div>
-      <input type="range" id="bpm-slider" min="60" max="180" value="80" step="1">
+      <div>
+        <span class="ctrl-label">BPM</span>
+        <div id="bpm-box" title="Drag up/down to change BPM">80.0</div>
+        <input type="range" id="bpm-slider" min="60" max="180" value="80" step="1">
+      </div>
+      <button class="tbtn" id="play-btn" title="Play / Pause  (Space)">
+        <svg id="icon-play"  width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
+        <svg id="icon-pause" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+      </button>
+      <button class="tbtn" id="stop-btn" title="Stop  (Escape)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="1"/></svg>
+      </button>
+      <button class="tbtn" id="btn-rec" title="Record live audio">
+        <svg width="12" height="12" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="#c94040"/></svg>
+      </button>
+      <button id="menu-btn" title="Menu" aria-label="Open menu">
+        <span></span><span></span><span></span>
+      </button>
     </div>
 
-    <!-- Play / Stop -->
-    <button class="tbtn" id="play-btn" title="Play / Pause  (Space)">
-      <svg id="icon-play"  width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
-      <svg id="icon-pause" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
-    </button>
-    <button class="tbtn" id="stop-btn" title="Stop  (Escape)">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="1"/></svg>
-    </button>
-    <button class="tbtn" id="btn-rec" title="Record live audio">
-      <svg width="12" height="12" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="#c94040"/></svg>
-    </button>
-
-    <!-- Scale + Root -->
-    <div>
-      <span class="ctrl-label">Scale</span>
+    <!-- Scale + Key (second row on narrow screens) -->
+    <div id="header-scale-row">
+      <div>
+        <span class="ctrl-label">Scale</span>
       <select id="scale-select" class="hdr-select">
         <optgroup label="Pentatonic">
           <option value="pent_major">Major Pentatonic</option>
@@ -556,12 +583,7 @@ input[type=range].ui-slider{width:100%;height:3px;accent-color:var(--gold);curso
       </select>
     </div>
 
-    <!-- Hamburger -->
-    <button id="menu-btn" title="Menu" aria-label="Open menu">
-      <span></span><span></span><span></span>
-    </button>
-
-    </div><!-- /#header-controls -->
+    </div><!-- /#header-scale-row -->
   </header>
 
   <!-- Main: grid only -->
@@ -1162,13 +1184,18 @@ const Grid = (() => {
     const wrap    = document.getElementById('grid-wrap');
     // Calculate available space precisely
     // Cell size: square cells fitting both width AND height
-    const availW = wrap.clientWidth - 8;
-    // Measure available height directly from the grid-main-row element
-    const gridRow = document.getElementById('grid-main-row');
-    const availH  = (gridRow ? gridRow.clientHeight : window.innerHeight - 200) - 16;
-    const cellByW = Math.floor((availW - COLS*3) / COLS);
-    const cellByH = Math.floor((availH - ROWS*3) / ROWS);
-    const cellPx  = Math.max(Math.min(cellByW, cellByH), 12);
+    // Measure all fixed-height elements to find true available height
+    const headerEl  = document.getElementById('header');
+    const statusEl  = document.getElementById('statusbar');
+    const probEl    = document.getElementById('prob-main-row');
+    const headerH   = headerEl  ? headerEl.getBoundingClientRect().height  : 60;
+    const statusH   = statusEl  ? statusEl.getBoundingClientRect().height  : 32;
+    const probH     = probEl    ? probEl.getBoundingClientRect().height    : 20;
+    const availH    = window.innerHeight - headerH - statusH - probH - 16;
+    const availW    = wrap.clientWidth - 8;
+    const cellByW   = Math.floor((availW - COLS*3) / COLS);
+    const cellByH   = Math.floor((availH - ROWS*3) / ROWS);
+    const cellPx    = Math.max(Math.min(cellByW, cellByH), 12);
 
     gridEl.style.gridTemplateColumns=`repeat(${COLS},${cellPx}px)`;
     gridEl.style.gridTemplateRows   =`repeat(${ROWS},${cellPx}px)`;
@@ -1978,7 +2005,12 @@ const App = (() => {
 
   // ── Init ────────────────────────────────────────────────────────
   function init(){
-    Grid.buildGrid();
+    // Use rAF to ensure layout is fully settled before sizing grid cells
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        Grid.buildGrid();
+      });
+    });
     AudioEngine.init();
 
     initKnobs();
@@ -2097,7 +2129,7 @@ const App = (() => {
     ProbPopover.init();
 
     let rt;
-    window.addEventListener('resize',()=>{ clearTimeout(rt); rt=setTimeout(()=>Grid.buildGrid(),150); });
+    window.addEventListener('resize',()=>{ clearTimeout(rt); rt=setTimeout(()=>{ requestAnimationFrame(()=>Grid.buildGrid()); },200); });
   }
 
   document.addEventListener('DOMContentLoaded', init);
