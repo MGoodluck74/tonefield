@@ -1,5 +1,5 @@
-// ToneField Service Worker v4
-const CACHE = 'tonefield-v4';
+// ToneField Service Worker v5
+const CACHE = 'tonefield-v5';
 const ASSETS = ['./index.html','./manifest.json','./icon-192.png','./icon-512.png'];
 
 self.addEventListener('install', e => {
