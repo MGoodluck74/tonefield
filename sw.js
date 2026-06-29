@@ -1,5 +1,5 @@
-// ToneField Service Worker v3 — forces cache refresh
-const CACHE = 'tonefield-v3';
+// ToneField Service Worker v4
+const CACHE = 'tonefield-v4';
 const ASSETS = ['./index.html','./manifest.json','./icon-192.png','./icon-512.png'];
 
 self.addEventListener('install', e => {
