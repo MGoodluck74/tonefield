@@ -256,10 +256,10 @@ input[type=range].ui-slider{width:100%;height:3px;accent-color:var(--gold);curso
 .danger-btn:hover{background:rgba(201,64,64,.1)}
 
 /* ── Grid area ── */
-#main{flex:1;display:flex;overflow:hidden;flex-direction:column;min-height:0}
+#main{flex:1;display:flex;overflow:hidden;flex-direction:column;min-height:0;width:100%}
 #grid-area{
   flex:1;display:flex;flex-direction:column;
-  overflow:hidden;min-height:0;
+  overflow:hidden;min-height:0;width:100%;
 }
 /* Top row: labels + grid */
 #grid-main-row{
@@ -273,7 +273,7 @@ input[type=range].ui-slider{width:100%;height:3px;accent-color:var(--gold);curso
   flex:1;display:flex;align-items:center;justify-content:flex-end;
   font-size:9px;color:var(--text-label);font-weight:500;letter-spacing:.02em;white-space:nowrap;
 }
-#grid-wrap{flex:1;padding:8px 8px 4px 0;overflow:hidden;display:flex;min-height:0}
+#grid-wrap{flex:1;padding:8px 8px 4px 0;overflow:hidden;display:flex;min-height:0;width:100%}
 #grid-and-prob{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
 /* Prob row: fixed 20px height, always visible below grid */
 #prob-main-row{
@@ -896,67 +896,86 @@ const LiveRecorder = (() => {
 
   function start() {
     if (recording) return;
-    // Ensure audio context exists — resume() creates it if needed
     return AudioEngine.resume().then(() => {
-      const ctx = AudioEngine.getContext();
+      const ctx        = AudioEngine.getContext();
       const masterGain = AudioEngine.getMasterGain();
       if (!ctx || !masterGain) {
-        alert('Audio not available. Please tap Play first.');
+        alert('Please press Play first to initialise audio, then record.');
+        return false;
+      }
+      if (ctx.state !== 'running') {
+        alert('Please press Play first to initialise audio, then record.');
         return false;
       }
       return _startRecording(ctx, masterGain);
     });
   }
 
-  function _startRecording(ctx, masterGain) {
+  function _startRecording(_ctx, _mg) {
     try {
-      // Tap off the masterGain into a MediaStream for recording
-      const streamDest = ctx.createMediaStreamDestination();
-      masterGain.connect(streamDest);
-      recordStream = streamDest;
-      chunks = [];
+      const sampleRate = _ctx.sampleRate;
+      const recBuffers = [[], []];  // stereo
 
-      // Pick best supported format
-      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
-        ? 'audio/webm;codecs=opus'
-        : MediaRecorder.isTypeSupported('audio/webm')
-          ? 'audio/webm'
-          : '';
+      const scriptNode = _ctx.createScriptProcessor(4096, 2, 2);
+      _mg.connect(scriptNode);
+      scriptNode.connect(_ctx.destination);
 
-      mediaRecorder = new MediaRecorder(streamDest.stream,
-        mimeType ? { mimeType } : {});
-
-      mediaRecorder.ondataavailable = e => {
-        if (e.data && e.data.size > 0) chunks.push(e.data);
+      scriptNode.onaudioprocess = e => {
+        if (!recording) return;
+        recBuffers[0].push(new Float32Array(e.inputBuffer.getChannelData(0)));
+        recBuffers[1].push(new Float32Array(e.inputBuffer.getChannelData(1)));
       };
 
-      // Capture references in closure so onstop can access them
-      const _mg = masterGain;
-      const _sd = streamDest;
-      const _mr = mediaRecorder;  // will be set after this block
-      mediaRecorder.onstop = () => {
-        try { _mg.disconnect(_sd); } catch(e) {}
-        const allChunks = chunks.slice();
-        chunks = [];
-        console.log('Recording stopped. Chunks:', allChunks.length);
-        if (allChunks.length === 0) {
-          alert('No audio recorded — make sure notes are playing while recording.');
-          return;
+      mediaRecorder = {
+        _sn: scriptNode,
+        stop: () => {
+          scriptNode.onaudioprocess = null;
+          try { _mg.disconnect(scriptNode); scriptNode.disconnect(); } catch(e2) {}
+
+          function flatten(list) {
+            let len = 0; list.forEach(b => len += b.length);
+            const out = new Float32Array(len); let off = 0;
+            list.forEach(b => { out.set(b, off); off += b.length; });
+            return out;
+          }
+
+          function encodeWAV(L, R, sr) {
+            const numCh = 2, pcmLen = L.length * numCh * 2;
+            const buf = new ArrayBuffer(44 + pcmLen);
+            const v = new DataView(buf);
+            const s = (o,t) => { for(let i=0;i<t.length;i++) v.setUint8(o+i,t.charCodeAt(i)); };
+            s(0,'RIFF'); v.setUint32(4,36+pcmLen,true); s(8,'WAVE');
+            s(12,'fmt '); v.setUint32(16,16,true); v.setUint16(20,1,true);
+            v.setUint16(22,numCh,true); v.setUint32(24,sr,true);
+            v.setUint32(28,sr*numCh*2,true); v.setUint16(32,numCh*2,true);
+            v.setUint16(34,16,true); s(36,'data'); v.setUint32(40,pcmLen,true);
+            let o = 44;
+            for (let i=0;i<L.length;i++){
+              const l=Math.max(-1,Math.min(1,L[i])), r=Math.max(-1,Math.min(1,R[i]));
+              v.setInt16(o,l<0?l*0x8000:l*0x7FFF,true); o+=2;
+              v.setInt16(o,r<0?r*0x8000:r*0x7FFF,true); o+=2;
+            }
+            return buf;
+          }
+
+          const L = flatten(recBuffers[0]);
+          const R = flatten(recBuffers[1]);
+          if (L.length === 0) {
+            alert('No audio captured. Make sure notes are playing while recording.');
+            return;
+          }
+          const wav  = encodeWAV(L, R, sampleRate);
+          const blob = new Blob([wav], { type: 'audio/wav' });
+          const url  = URL.createObjectURL(blob);
+          showDownloadDialog(url, 'tonefield-live.wav', blob.size);
         }
-        const mimeT = _mr ? (_mr.mimeType || 'audio/webm') : 'audio/webm';
-        const blob  = new Blob(allChunks, { type: mimeT });
-        const ext   = mimeT.includes('ogg') ? 'ogg' : 'webm';
-        const url   = URL.createObjectURL(blob);
-        console.log('Blob size:', blob.size, 'type:', mimeT);
-        showDownloadDialog(url, 'tonefield-live.' + ext, blob.size);
       };
 
-      mediaRecorder.start(100);
       recording = true;
       return true;
     } catch(e) {
       console.error('LiveRecorder error:', e);
-      alert('Recording not supported in this browser: ' + e.message);
+      alert('Recording error: ' + e.message);
       return false;
     }
   }
@@ -1118,19 +1137,12 @@ const Grid = (() => {
 
     const wrap    = document.getElementById('grid-wrap');
     // Calculate available space precisely
-    // Cell size: square cells fitting both width AND height
-    // Measure all fixed-height elements to find true available height
-    const headerEl  = document.getElementById('header');
-    const statusEl  = document.getElementById('statusbar');
-    const probEl    = document.getElementById('prob-main-row');
-    const headerH   = headerEl  ? headerEl.getBoundingClientRect().height  : 60;
-    const statusH   = statusEl  ? statusEl.getBoundingClientRect().height  : 32;
-    const probH     = probEl    ? probEl.getBoundingClientRect().height    : 20;
-    const availH    = window.innerHeight - headerH - statusH - probH - 16;
-    const availW    = wrap.clientWidth - 8;
-    const cellByW   = Math.floor((availW - COLS*3) / COLS);
-    const cellByH   = Math.floor((availH - ROWS*3) / ROWS);
-    const cellPx    = Math.max(Math.min(cellByW, cellByH), 12);
+    // Size cells to fill width, capped by height
+    const availH  = window.innerHeight - 120; // generous: header+status+prob
+    const availW  = window.innerWidth  - 60;  // note labels + padding
+    const cellByW = Math.floor((availW - COLS*3) / COLS);
+    const cellByH = Math.floor((availH - ROWS*3) / ROWS);
+    const cellPx  = Math.max(Math.min(cellByW, cellByH), 16);
 
     gridEl.style.gridTemplateColumns=`repeat(${COLS},${cellPx}px)`;
     gridEl.style.gridTemplateRows   =`repeat(${ROWS},${cellPx}px)`;
@@ -1169,8 +1181,8 @@ const Grid = (() => {
     // Build probability bars below grid
     const probRow = document.getElementById('prob-row');
     probRow.innerHTML = ''; probEls = [];
+    probRow.style.gridTemplateColumns=`repeat(${COLS},${cellPx}px)`;
     // Match grid column widths exactly, including the gap
-    probRow.style.gridTemplateColumns = `repeat(${COLS},${cellPx}px)`;
     // Align prob row with grid
     document.getElementById('prob-label-spacer').style.width =
       (document.getElementById('note-labels').offsetWidth || 38) + 'px';
@@ -1947,12 +1959,13 @@ const App = (() => {
 
   // ── Init ────────────────────────────────────────────────────────
   function init(){
-    // Use rAF to ensure layout is fully settled before sizing grid cells
-    requestAnimationFrame(() => {
+    // Wait for layout to fully settle — especially important in Electron
+    // where the window chrome affects available dimensions
+    setTimeout(() => {
       requestAnimationFrame(() => {
         Grid.buildGrid();
       });
-    });
+    }, 100);
     AudioEngine.init();
 
     initKnobs();
@@ -2028,14 +2041,23 @@ const App = (() => {
             recBtn.querySelector('circle').setAttribute('fill', '#c94040');
             recBtn.title = 'Record live audio';
           } else {
-            if (!isPlaying) play();  // auto-start playback
-            Promise.resolve(LiveRecorder.start()).then(ok => {
-              if (ok) {
-                recBtn.style.color = '#c94040';
-                recBtn.querySelector('circle').setAttribute('fill', '#fff');
-                recBtn.title = 'Stop recording — tap to save';
-              }
-            });
+            // Start playback first, wait for audio context to be running, then record
+            const startRec = () => {
+              Promise.resolve(LiveRecorder.start()).then(ok => {
+                if (ok) {
+                  recBtn.style.color = '#c94040';
+                  recBtn.querySelector('circle').setAttribute('fill', '#fff');
+                  recBtn.title = 'Stop recording — tap to save';
+                }
+              });
+            };
+            if (!isPlaying) {
+              // play() is async — wait 200ms for audio context to be running
+              play();
+              setTimeout(startRec, 200);
+            } else {
+              startRec();
+            }
           }
         });
       }
@@ -2083,7 +2105,11 @@ const App = (() => {
     window.addEventListener('resize',()=>{ clearTimeout(rt); rt=setTimeout(()=>{ requestAnimationFrame(()=>Grid.buildGrid()); },200); });
   }
 
-  document.addEventListener('DOMContentLoaded', init);
+  document.addEventListener('DOMContentLoaded', () => {
+    isPlaying = false;  // ensure clean state
+    currentCol = 0;
+    init();
+  });
   return { play, pause, stop };
 })();
 
@@ -2113,16 +2139,21 @@ const App = (() => {
   var unlockBtn    = document.getElementById('audio-unlock-btn');
   if (!audioOverlay || !unlockBtn) return;
 
-  // Always show on load
-  audioOverlay.style.display = 'flex';
-
-  unlockBtn.addEventListener('click', function() {
-    AudioEngine.resume().then(function() {
-      audioOverlay.style.display = 'none';
-    }).catch(function() {
-      audioOverlay.style.display = 'none';
+  // Always show tap-to-start on browsers (iOS requires gesture)
+  // Skip in Electron where audio works without gesture
+  if (typeof window.electronApp !== 'undefined') {
+    audioOverlay.style.display = 'none';
+    AudioEngine.resume();
+  } else {
+    audioOverlay.style.display = 'flex';
+    unlockBtn.addEventListener('click', function() {
+      AudioEngine.resume().then(function() {
+        audioOverlay.style.display = 'none';
+      }).catch(function() {
+        audioOverlay.style.display = 'none';
+      });
     });
-  });
+  }
 })();
 
 // ── Service Worker (PWA offline support) ────────────────────────
