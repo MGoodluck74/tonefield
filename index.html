@@ -155,7 +155,9 @@ select,input{font-family:inherit}
 #menu-panel{
   position:fixed;
   top:0;left:0;right:0;bottom:0;
-  width:100vw;height:100vh;
+  width:100vw;
+  height:100vh;
+  height:100dvh;  /* iOS: dynamic viewport excludes browser chrome */
   z-index:9000;
   background:var(--bg-panel);
   display:flex;flex-direction:column;
@@ -182,11 +184,15 @@ select,input{font-family:inherit}
 }
 #menu-close-btn:hover{background:var(--bg-cell-h);border-color:var(--border-hi)}
 #menu-content{
-  flex:1;overflow-y:auto;
+  flex:1;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;  /* smooth iOS scrolling */
+  overscroll-behavior:contain;
   display:grid;
   grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
   gap:1px;background:var(--border);
   border-top:1px solid var(--border);
+  min-height:0;  /* critical — allows flex child to shrink and scroll */
 }
 .menu-section{
   background:var(--bg-panel);
@@ -2249,19 +2255,19 @@ if ('serviceWorker' in navigator) {
     </div>
   </div>
 
-  <!-- Clear -->
-  <div class="menu-section">
-    <span class="menu-section-label">Pattern</span>
-    <button class="danger-btn" id="btn-new">Clear Pattern</button>
-  </div>
-
-  <!-- Copyright -->
-  <div class="menu-section">
-    <span class="menu-section-label">About</span>
-    <div style="font-size:11px;color:var(--text-dim);line-height:1.7">
-      ToneField v1.1<br>
-      © 2026 Matt Goodluck<br>
-      All rights reserved.
+  <!-- Pattern + About — full width row at bottom -->
+  <div class="menu-section" style="grid-column:1/-1;display:flex;align-items:flex-start;gap:24px;flex-wrap:wrap">
+    <div style="flex:1;min-width:140px">
+      <span class="menu-section-label">Pattern</span>
+      <button class="danger-btn" id="btn-new">Clear Pattern</button>
+    </div>
+    <div style="flex:1;min-width:140px">
+      <span class="menu-section-label">About</span>
+      <div style="font-size:11px;color:var(--text-dim);line-height:1.7">
+        ToneField v1.1<br>
+        © 2026 Matt Goodluck<br>
+        All rights reserved.
+      </div>
     </div>
   </div>
 
