@@ -358,8 +358,6 @@ input[type=range].ui-slider{width:100%;height:3px;accent-color:var(--gold);curso
   flex-shrink:0;min-height:32px;max-height:48px;
   position:relative;z-index:1;
 }
-#status-left{display:flex;align-items:center;order:1}
-#status-copyright{font-size:9px;color:var(--text-label);letter-spacing:.03em;white-space:nowrap}
 #pat-area{
   display:flex;align-items:center;gap:5px;cursor:pointer;
   order:2;padding:6px 0;
@@ -379,9 +377,8 @@ input[type=range].ui-slider{width:100%;height:3px;accent-color:var(--gold);curso
 #note-count-label{font-size:10px;color:var(--text-dim);letter-spacing:.03em;white-space:nowrap}
 /* On very narrow screens (iPhone portrait) hide copyright to save space */
 @media (max-width:480px){
-  #status-left{display:none}
-  #pat-area{padding:5px 0}
-  #status-right{gap:8px}
+  #pat-area{padding:5px 0;flex:1;justify-content:center}
+  #status-right{gap:6px}
   .stat-btn{font-size:9px}
 }
 
@@ -631,9 +628,7 @@ input[type=range].ui-slider{width:100%;height:3px;accent-color:var(--gold);curso
 
   <!-- Status bar -->
   <div id="statusbar">
-    <div id="status-left">
-      <span id="status-copyright">© 2026 Matt Goodluck · v1.1</span>
-    </div>
+
     <div id="pat-area">
       <div id="pat-label">Pattern</div>
       <div id="pat-name">Untitled</div>
@@ -2173,17 +2168,12 @@ if ('serviceWorker' in navigator) {
     </button>
   </div>
 
-  <!-- Velocity -->
+  <!-- Velocity & Gate -->
   <div class="menu-section">
-    <span class="menu-section-label">Velocity</span>
-    <div class="slider-row"><span class="slider-name">Level</span><span class="slider-val" id="vel-val">80</span></div>
+    <span class="menu-section-label">Velocity &amp; Gate</span>
+    <div class="slider-row"><span class="slider-name">Velocity</span><span class="slider-val" id="vel-val">80</span></div>
     <input type="range" class="ui-slider" id="vel-slider" min="1" max="127" value="80">
-  </div>
-
-  <!-- Gate -->
-  <div class="menu-section">
-    <span class="menu-section-label">Gate</span>
-    <div class="slider-row"><span class="slider-name">Length</span><span class="slider-val" id="gate-val">60%</span></div>
+    <div class="slider-row" style="margin-top:10px"><span class="slider-name">Gate</span><span class="slider-val" id="gate-val">60%</span></div>
     <input type="range" class="ui-slider" id="gate-slider" min="1" max="100" value="60">
   </div>
 
@@ -2263,6 +2253,16 @@ if ('serviceWorker' in navigator) {
   <div class="menu-section">
     <span class="menu-section-label">Pattern</span>
     <button class="danger-btn" id="btn-new">Clear Pattern</button>
+  </div>
+
+  <!-- Copyright -->
+  <div class="menu-section">
+    <span class="menu-section-label">About</span>
+    <div style="font-size:11px;color:var(--text-dim);line-height:1.7">
+      ToneField v1.1<br>
+      © 2026 Matt Goodluck<br>
+      All rights reserved.
+    </div>
   </div>
 
   </div><!-- /#menu-content -->
