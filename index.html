@@ -60,16 +60,47 @@ select,input{font-family:inherit}
 #logo{display:flex;align-items:center;gap:8px;flex-shrink:0;margin-right:4px}
 .logo-name{font-size:18px;font-weight:600;letter-spacing:-.01em;color:#e8e8ec;line-height:1.1}
 .logo-sub{font-size:8px;letter-spacing:.14em;color:var(--text-dim);text-transform:uppercase;margin-top:2px;display:block}
-/* Compact on narrow screens */
-@media (max-width:600px){
-  #header{height:52px;padding:0 8px;gap:5px}
+/* Tablet: compact single row */
+@media (max-width:700px) and (min-width:481px){
+  #header{height:52px;padding:0 10px;gap:7px}
   .logo-sub{display:none}
-  .logo-name{font-size:14px}
-  #bpm-box{font-size:12px;min-width:40px;padding:2px 5px}
-  .tbtn{width:28px;height:28px}
+  .logo-name{font-size:15px}
+  #bpm-box{font-size:13px;min-width:44px;padding:3px 6px}
+  .tbtn{width:32px;height:32px}
   .ctrl-label{font-size:7px}
-  #scale-select{min-width:78px;font-size:10px}
-  #root-select{min-width:36px;font-size:10px}
+  #scale-select{min-width:88px;font-size:11px}
+  #root-select{min-width:40px;font-size:11px}
+}
+/* iPhone: two-row header */
+@media (max-width:480px){
+  #header{
+    height:auto;min-height:88px;
+    flex-wrap:wrap;padding:6px 10px;gap:6px;
+    align-content:center;
+  }
+  /* Row 1: logo takes full left, spacer pushes controls right */
+  #logo{order:1;flex-shrink:0}
+  #logo div[style]{gap:0px}
+  .logo-name{font-size:16px}
+  .logo-sub{display:none}
+  /* Spacer between logo and transport */
+  #header > div[style="flex:1"]{order:2;flex:1}
+  /* BPM */
+  #header > div:has(#bpm-box){order:3;flex-shrink:0}
+  #bpm-box{font-size:13px;min-width:42px;padding:2px 5px}
+  .ctrl-label{font-size:7px;letter-spacing:.05em}
+  /* Transport buttons */
+  .tbtn{order:4;width:30px;height:30px;flex-shrink:0}
+  #menu-btn{order:5}
+  /* Row 2: Scale + Key full width */
+  #header > div:has(#scale-select){
+    order:6;flex:1;
+  }
+  #header > div:has(#root-select){
+    order:7;flex-shrink:0;
+  }
+  #scale-select{font-size:11px;min-width:0;width:100%}
+  #root-select{font-size:11px;min-width:44px}
 }
 
 /* BPM */
@@ -509,7 +540,7 @@ input[type=range].ui-slider{width:100%;height:3px;accent-color:var(--gold);curso
     <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
       <span class="ctrl-label">BPM</span>
       <div id="bpm-box" title="Drag up/down to change BPM">80.0</div>
-      <input type="range" id="bpm-slider" min="60" max="180" value="80" step="1" style="display:none">
+      <input type="range" id="bpm-slider" min="40" max="180" value="80" step="1" style="display:none">
     </div>
 
     <!-- Play -->
@@ -737,6 +768,11 @@ const AudioEngine = (() => {
   let delayNode = null, feedbackGain = null, delayWetGain = null, delayFilter = null;
   let delayEnabled = true;
   let params = { mix:0.25, feedback:0.25, delayTime:0.372, filterFreq:6000 };
+  let velocity = 0.88;  // 0.0–1.0, maps from slider 1–127
+  let gate     = 0.85;  // 0.0–1.0, maps from slider 1–100 (scales STOP time)
+
+  function setVelocity(v) { velocity = v; }  // v = 0.0–1.0
+  function setGate(g)     { gate = g; }      // g = 0.0–1.0
 
   // Build the full audio graph. Must be called inside a user gesture
   // on iOS/iPadOS (Chrome and Safari both require this).
@@ -796,7 +832,10 @@ const AudioEngine = (() => {
     _build();  // creates or resumes context — safe to call every note
     if (!ctx) return;
     time = time || ctx.currentTime;
-    const TAU=0.130, PEAK=0.55, STOP=0.85;
+    // Use current velocity (volume) and gate (note length) settings
+    const TAU  = 0.130;
+    const PEAK = 0.55 * velocity;          // velocity scales amplitude
+    const STOP = 0.20 + (gate * 0.65);    // gate 0→0.20s, gate 1→0.85s
     // Fundamental — pure sine
     {
       const osc=ctx.createOscillator(), env=ctx.createGain();
@@ -834,7 +873,8 @@ const AudioEngine = (() => {
   function getMasterGain() { return masterGain; }
 
   return { init, resume, playNote, setMix, setFeedback, setDelayTime,
-           setFilter, setDelayEnabled, getContext, getMasterGain };
+           setFilter, setDelayEnabled, getContext, getMasterGain,
+           setVelocity, setGate };
 })();
 
 
@@ -1382,7 +1422,14 @@ const AudioExport = (() => {
     // ── Schedule all notes ───────────────────────────────────────
     const COLS = 16, ROWS = 16;
     const colInterval = (60 / bpm) / 4;  // 16th note in seconds
-    const TAU = 0.130, PEAK = 0.55, STOP = 0.85;
+    // Read current velocity and gate values for offline render
+    const velEl  = document.getElementById('vel-slider');
+    const gateEl = document.getElementById('gate-slider');
+    const velVal  = velEl  ? +velEl.value  / 127 : 1.0;
+    const gateVal = gateEl ? +gateEl.value / 100 : 1.0;
+    const TAU  = 0.130;
+    const PEAK = 0.55 * velVal;
+    const STOP = 0.20 + (gateVal * 0.65);
 
     function scheduleNote(freq, time) {
       // Fundamental
@@ -1678,7 +1725,7 @@ const App = (() => {
     const box=document.getElementById('bpm-box');
     let startY,startBpm;
     const onMove=e=>{ const cy=e.touches?e.touches[0].clientY:e.clientY;
-      bpm=Math.max(60,Math.min(180,Math.round(startBpm+(startY-cy)*0.5)));
+      bpm=Math.max(40,Math.min(180,Math.round(startBpm+(startY-cy)*0.5)));
       box.textContent=bpm.toFixed(1); };
     const onUp=()=>{ document.removeEventListener('mousemove',onMove); document.removeEventListener('mouseup',onUp);
                      document.removeEventListener('touchmove',onMove); document.removeEventListener('touchend',onUp); };
@@ -1924,8 +1971,16 @@ const App = (() => {
         shiftLeft:Grid.shiftLeft,shiftRight:Grid.shiftRight,shuffle:Grid.shuffle})[a]?.call(Grid);
     }));
 
-    document.getElementById('vel-slider').addEventListener('input',e=>document.getElementById('vel-val').textContent=e.target.value);
-    document.getElementById('gate-slider').addEventListener('input',e=>document.getElementById('gate-val').textContent=e.target.value+'%');
+    document.getElementById('vel-slider').addEventListener('input', e => {
+      const raw = +e.target.value;                    // 1–127
+      document.getElementById('vel-val').textContent = raw;
+      AudioEngine.setVelocity(raw / 127);             // normalise to 0.0–1.0
+    });
+    document.getElementById('gate-slider').addEventListener('input', e => {
+      const raw = +e.target.value;                    // 1–100
+      document.getElementById('gate-val').textContent = raw + '%';
+      AudioEngine.setGate(raw / 100);                 // normalise to 0.0–1.0
+    });
 
     let delayOn=true;
     document.getElementById('delay-on-btn').addEventListener('click',()=>{
